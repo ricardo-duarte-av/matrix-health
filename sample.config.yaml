@@ -1,0 +1,5 @@
+servername: "https://matrix.org"
+username: "@user:matrix.org"
+password: "password"
+logroom: "!room_id:matrix.org" 
+interval: 360
