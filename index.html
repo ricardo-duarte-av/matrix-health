@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room and Server Visualization</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden; /* Ensure no scrollbars appear */
+        }
+
+        .room-node {
+            fill: #0074D9;
+            stroke: #001F3F;
+            stroke-width: 2px;
+        }
+
+        .server-node {
+            stroke: #000;
+            stroke-width: 1px;
+        }
+
+        .line {
+            stroke: #888;
+            stroke-width: 1px;
+        }
+
+        text {
+            font-size: 10px;
+            fill: #000;
+        }
+    </style>
+</head>
+<body>
+    <svg id="viz"></svg>
+
+    <script>
+        // Set up SVG dimensions
+        const svg = d3.select("#viz")
+            .attr("width", window.innerWidth) // Full browser width
+            .attr("height", window.innerHeight) // Full browser height
+            .attr("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`)
+            .call(
+                d3.zoom().on("zoom", (event) => {
+                    container.attr("transform", event.transform);
+                })
+            );
+
+        const container = svg.append("g"); // Group for all elements
+        const linesGroup = container.append("g"); // Separate group for lines (behind nodes)
+        const nodesGroup = container.append("g"); // Separate group for nodes (origin, rooms, servers)
+
+        const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+        // Fetch data from the /tree endpoint
+        async function fetchTreeData() {
+            const response = await fetch('/tree');
+            if (!response.ok) {
+                throw new Error("Failed to fetch tree data");
+            }
+            return await response.json();
+        }
+
+        // Render the visualization
+        async function renderVisualization() {
+            const data = await fetchTreeData();
+
+            // Draw the origin node
+            nodesGroup.append("circle")
+                .attr("cx", center.x)
+                .attr("cy", center.y)
+                .attr("r", 30) // Slightly larger origin
+                .attr("fill", "#FFDC00");
+
+            nodesGroup.append("text")
+                .attr("x", center.x)
+                .attr("y", center.y + 5)
+                .text("Origin")
+                .style("font-weight", "bold");
+
+            // Compute room positions around the origin
+            const rooms = data.children || [];
+            const roomRadius = 2000 // Math.min(window.innerWidth, window.innerHeight) / 1; // Increased distance for rooms (Level 2)
+            const angleStep = (2 * Math.PI) / rooms.length;
+
+            rooms.forEach((room, i) => {
+                const roomAngle = i * angleStep;
+                const roomX = center.x + roomRadius * Math.cos(roomAngle);
+                const roomY = center.y + roomRadius * Math.sin(roomAngle);
+
+                // Draw the line from origin to room (Level 2)
+                linesGroup.append("line")
+                    .attr("x1", center.x)
+                    .attr("y1", center.y)
+                    .attr("x2", roomX)
+                    .attr("y2", roomY)
+                    .attr("class", "line");
+
+                // Draw the room node
+                nodesGroup.append("circle")
+                    .attr("cx", roomX)
+                    .attr("cy", roomY)
+                    .attr("r", 20)
+                    .attr("class", "room-node");
+
+                // Directly use the `name` field from the JSON response for room labels
+                nodesGroup.append("text")
+                    .attr("x", roomX)
+                    .attr("y", roomY - 25)
+                    .text(room.name);
+
+                // Compute server positions around each room
+                const servers = room.children || [];
+                const serverRadius = 1000; // Distance from room to servers
+                const labelRadius = serverRadius + 30; // Distance for labels (closer to server circles)
+                const serverAngleStep = (2 * Math.PI) / servers.length;
+
+                servers.forEach((server, j) => {
+                    const serverAngle = j * serverAngleStep;
+                    const serverX = roomX + serverRadius * Math.cos(serverAngle);
+                    const serverY = roomY + serverRadius * Math.sin(serverAngle);
+
+                    // Draw the line connecting the room to the server
+                    linesGroup.append("line")
+                        .attr("x1", roomX)
+                        .attr("y1", roomY)
+                        .attr("x2", serverX)
+                        .attr("y2", serverY)
+                        .attr("class", "line");
+
+                    // Draw the server node
+                    nodesGroup.append("circle")
+                        .attr("cx", serverX)
+                        .attr("cy", serverY)
+                        .attr("r", 10) // Slightly larger server node for visibility
+                        .attr("class", "server-node")
+                        .attr("fill", server.status.toLowerCase() === "ok" ? "#2ECC40" : "#FF4136");
+
+                    // Calculate angle between room and server
+                    const angle = (Math.atan2(serverY - roomY, serverX - roomX) * 180) / Math.PI;
+
+                    // Calculate text position further out on the same angle
+                    const textX = roomX + labelRadius * Math.cos(serverAngle);
+                    const textY = roomY + labelRadius * Math.sin(serverAngle);
+
+                    // Adjust text-anchor and rotation based on hemisphere
+                    const isLeftHemisphere = serverAngle > Math.PI / 2 && serverAngle < (3 * Math.PI) / 2;
+                    const textAnchor = isLeftHemisphere ? "end" : "start";
+                    const adjustedAngle = isLeftHemisphere ? angle + 180 : angle;
+
+                    // Draw the server name
+                    nodesGroup.append("text")
+                        .attr("x", textX)
+                        .attr("y", textY)
+                        .attr("text-anchor", textAnchor) // Align text properly
+                        .attr("transform", `rotate(${adjustedAngle}, ${textX}, ${textY})`) // Rotate text appropriately
+                        .text(server.name);
+                });
+            });
+        }
+
+        // Render the visualization
+        renderVisualization().catch(error => console.error("Error rendering visualization:", error));
+
+        // Adjust SVG dimensions on window resize
+        window.addEventListener("resize", () => {
+            svg.attr("width", window.innerWidth)
+                .attr("height", window.innerHeight)
+                .attr("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
+        });
+    </script>
+</body>
+</html>
