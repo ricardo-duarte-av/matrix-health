@@ -122,21 +122,15 @@
                     .attr("r", 20)
                     .attr("class", "room-node");
 
-                // Draw the room avatar as an HTML <img> absolutely positioned
+                // Draw the room avatar as an SVG <image> with circular clip-path
                 if (room.avatar) {
-                    const img = document.createElement('img');
-                    img.src = room.avatar;
-                    img.alt = room.name;
-                    img.style.position = 'absolute';
-                    img.style.left = (roomX - 16) + 'px';
-                    img.style.top = (roomY - 16) + 'px';
-                    img.style.width = '32px';
-                    img.style.height = '32px';
-                    img.style.borderRadius = '50%';
-                    img.style.boxShadow = '0 2px 8px #888';
-                    img.style.pointerEvents = 'none';
-                    img.style.zIndex = 10;
-                    document.getElementById('room-imgs').appendChild(img);
+                    nodesGroup.append("image")
+                        .attr("x", roomX - 16)
+                        .attr("y", roomY - 16)
+                        .attr("width", 32)
+                        .attr("height", 32)
+                        .attr("href", room.avatar)
+                        .attr("clip-path", "url(#roomAvatarClip)");
                 }
 
                 // Draw the room name
