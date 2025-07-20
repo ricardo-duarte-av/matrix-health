@@ -50,6 +50,14 @@
                 })
             );
 
+        // Add a circular clipPath for room avatars
+        svg.append("defs").append("clipPath")
+            .attr("id", "roomAvatarClip")
+            .append("circle")
+            .attr("cx", 16)
+            .attr("cy", 16)
+            .attr("r", 16);
+
         const container = svg.append("g"); // Group for all elements
         const linesGroup = container.append("g"); // Separate group for lines (behind nodes)
         const nodesGroup = container.append("g"); // Separate group for nodes (origin, rooms, servers)
@@ -107,12 +115,23 @@
                     .attr("y2", roomY)
                     .attr("class", "line");
 
-                // Draw the room node
+                // Draw the room node (circle)
                 nodesGroup.append("circle")
                     .attr("cx", roomX)
                     .attr("cy", roomY)
                     .attr("r", 20)
                     .attr("class", "room-node");
+
+                // Draw the room avatar image (if available)
+                if (room.avatar) {
+                    nodesGroup.append("image")
+                        .attr("x", roomX - 16)
+                        .attr("y", roomY - 16)
+                        .attr("width", 32)
+                        .attr("height", 32)
+                        .attr("href", room.avatar)
+                        .attr("clip-path", "url(#roomAvatarClip)");
+                }
 
                 // Directly use the `name` field from the JSON response for room labels
                 nodesGroup.append("text")
