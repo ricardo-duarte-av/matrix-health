@@ -122,15 +122,14 @@
                     .attr("r", 20)
                     .attr("class", "room-node");
 
-                // Draw the room avatar as an SVG <image> with circular clip-path
+                // Draw the room avatar as an SVG <image> (no clip-path for debugging)
                 if (room.avatar) {
                     nodesGroup.append("image")
                         .attr("x", roomX - 16)
                         .attr("y", roomY - 16)
                         .attr("width", 32)
                         .attr("height", 32)
-                        .attr("href", room.avatar)
-                        .attr("clip-path", "url(#roomAvatarClip)");
+                        .attr("href", room.avatar);
                 }
 
                 // Draw the room name
