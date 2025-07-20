@@ -35,19 +35,22 @@
     </style>
 </head>
 <body>
-    <img id="room-avatar" src="" alt="Room Avatar" style="display:block;margin:20px auto;max-width:96px;max-height:96px;border-radius:12px;box-shadow:0 2px 8px #888;" />
-    <svg id="viz"></svg>
-    <div id="room-imgs" style="position:absolute;top:0;left:0;pointer-events:none;width:100vw;height:100vh;"></div>
+    <div id="viz-container" style="position:relative;width:100vw;height:100vh;overflow:hidden;">
+        <svg id="viz" style="position:absolute;top:0;left:0;width:100vw;height:100vh;"></svg>
+        <div id="room-imgs" style="position:absolute;top:0;left:0;width:100vw;height:100vh;pointer-events:none;"></div>
+    </div>
 
     <script>
         // Set up SVG dimensions
         const svg = d3.select("#viz")
-            .attr("width", window.innerWidth) // Full browser width
-            .attr("height", window.innerHeight) // Full browser height
+            .attr("width", window.innerWidth)
+            .attr("height", window.innerHeight)
             .attr("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`)
             .call(
                 d3.zoom().on("zoom", (event) => {
                     container.attr("transform", event.transform);
+                    // Also apply transform to HTML images
+                    document.getElementById('room-imgs').style.transform = `matrix(${event.transform.k},0,0,${event.transform.k},${event.transform.x},${event.transform.y})`;
                 })
             );
 
@@ -78,14 +81,6 @@
         async function renderVisualization() {
             const data = await fetchTreeData();
 
-            // Set the room avatar image to the first room's avatar (if available)
-            const rooms = data.children || [];
-            if (rooms.length > 0 && rooms[0].avatar) {
-                document.getElementById('room-avatar').src = rooms[0].avatar;
-            } else {
-                document.getElementById('room-avatar').src = '';
-            }
-
             // Clear previous HTML images
             document.getElementById('room-imgs').innerHTML = '';
 
@@ -93,7 +88,7 @@
             nodesGroup.append("circle")
                 .attr("cx", center.x)
                 .attr("cy", center.y)
-                .attr("r", 30) // Slightly larger origin
+                .attr("r", 30)
                 .attr("fill", "#FFDC00");
 
             nodesGroup.append("text")
@@ -103,7 +98,8 @@
                 .style("font-weight", "bold");
 
             // Compute room positions around the origin
-            const roomRadius = 2000 // Math.min(window.innerWidth, window.innerHeight) / 1; // Increased distance for rooms (Level 2)
+            const rooms = data.children || [];
+            const roomRadius = 2000;
             const angleStep = (2 * Math.PI) / rooms.length;
 
             rooms.forEach((room, i) => {
@@ -119,13 +115,12 @@
                     .attr("y2", roomY)
                     .attr("class", "line");
 
-                // Draw the room node (circle) with lower opacity for debugging
+                // Draw the room node (circle)
                 nodesGroup.append("circle")
                     .attr("cx", roomX)
                     .attr("cy", roomY)
                     .attr("r", 20)
-                    .attr("class", "room-node")
-                    .attr("fill-opacity", 0.3);
+                    .attr("class", "room-node");
 
                 // Draw the room avatar as an HTML <img> absolutely positioned
                 if (room.avatar) {
