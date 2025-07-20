@@ -107,6 +107,23 @@
                 const roomX = center.x + roomRadius * Math.cos(roomAngle);
                 const roomY = center.y + roomRadius * Math.sin(roomAngle);
 
+                // Draw the line from origin to room (Level 2)
+                linesGroup.append("line")
+                    .attr("x1", center.x)
+                    .attr("y1", center.y)
+                    .attr("x2", roomX)
+                    .attr("y2", roomY)
+                    .attr("class", "line");
+
+                // Create a unique clipPath for this room's avatar
+                const clipId = `roomAvatarClip${i}`;
+                svg.select("defs").append("clipPath")
+                    .attr("id", clipId)
+                    .append("circle")
+                    .attr("cx", roomX)
+                    .attr("cy", roomY)
+                    .attr("r", 16);
+
                 // Create a group for this room
                 const roomGroup = nodesGroup.append("g");
 
@@ -123,7 +140,7 @@
                     .attr("y", roomY - 25)
                     .text(room.name);
 
-                // Draw the room avatar as an SVG <image> with circular clip-path (drawn last)
+                // Draw the room avatar as an SVG <image> with unique circular clip-path (drawn last)
                 if (room.avatar) {
                     roomGroup.append("image")
                         .attr("x", roomX - 16)
@@ -131,7 +148,7 @@
                         .attr("width", 32)
                         .attr("height", 32)
                         .attr("href", room.avatar)
-                        .attr("clip-path", "url(#roomAvatarClip)");
+                        .attr("clip-path", `url(#${clipId})`);
                 }
 
                 // Compute server positions around each room
