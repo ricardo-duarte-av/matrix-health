@@ -54,13 +54,14 @@
                 })
             );
 
-        // Add a circular clipPath for room avatars
-        svg.append("defs").append("clipPath")
-            .attr("id", "roomAvatarClip")
+        // Add a mask for circular room avatars
+        svg.append("defs").append("mask")
+            .attr("id", "roomAvatarMask")
             .append("circle")
             .attr("cx", 16)
             .attr("cy", 16)
-            .attr("r", 16);
+            .attr("r", 16)
+            .attr("fill", "white");
 
         const container = svg.append("g"); // Group for all elements
         const linesGroup = container.append("g"); // Separate group for lines (behind nodes)
@@ -122,14 +123,15 @@
                     .attr("r", 20)
                     .attr("class", "room-node");
 
-                // Draw the room avatar as an SVG <image> (no clip-path for debugging)
+                // Draw the room avatar as an SVG <image> with circular mask
                 if (room.avatar) {
                     nodesGroup.append("image")
                         .attr("x", roomX - 16)
                         .attr("y", roomY - 16)
                         .attr("width", 32)
                         .attr("height", 32)
-                        .attr("href", room.avatar);
+                        .attr("href", room.avatar)
+                        .attr("mask", "url(#roomAvatarMask)");
                 }
 
                 // Draw the room name
