@@ -157,15 +157,20 @@
                 const minUsers = d3.min(servers, s => s.user_count || 1) || 1;
                 const maxUsers = d3.max(servers, s => s.user_count || 1) || 1;
                 const minRadius = 6, maxRadius = 24;
-                const minDistance = 400, maxDistance = 1400;
+                const minDistance = 400, maxDistance = 900;
                 const labelOffset = 30;
                 const serverAngleStep = (2 * Math.PI) / servers.length;
 
+                // Use square root scaling for distance
+                const distanceScale = d3.scaleSqrt()
+                    .domain([minUsers, maxUsers])
+                    .range([minDistance, maxDistance]);
+
                 servers.forEach((server, j) => {
                     const userCount = server.user_count || 1;
-                    // Scale radius and distance
+                    // Scale radius linearly, distance with sqrt
                     const radius = minRadius + (maxRadius - minRadius) * ((userCount - minUsers) / (maxUsers - minUsers || 1));
-                    const distance = minDistance + (maxDistance - minDistance) * ((userCount - minUsers) / (maxUsers - minUsers || 1));
+                    const distance = distanceScale(userCount);
                     const serverAngle = j * serverAngleStep;
                     const serverX = roomX + distance * Math.cos(serverAngle);
                     const serverY = roomY + distance * Math.sin(serverAngle);
