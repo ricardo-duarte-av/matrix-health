@@ -123,7 +123,13 @@
                     .attr("r", 20)
                     .attr("class", "room-node");
 
-                // Draw the room avatar as an SVG <image> with circular mask
+                // Draw the room name
+                nodesGroup.append("text")
+                    .attr("x", roomX)
+                    .attr("y", roomY - 25)
+                    .text(room.name);
+
+                // Draw the room avatar as an SVG <image> with circular mask (drawn last)
                 if (room.avatar) {
                     nodesGroup.append("image")
                         .attr("x", roomX - 16)
@@ -133,12 +139,6 @@
                         .attr("href", room.avatar)
                         .attr("mask", "url(#roomAvatarMask)");
                 }
-
-                // Draw the room name
-                nodesGroup.append("text")
-                    .attr("x", roomX)
-                    .attr("y", roomY - 25)
-                    .text(room.name);
 
                 // Compute server positions around each room
                 const servers = room.children || [];
