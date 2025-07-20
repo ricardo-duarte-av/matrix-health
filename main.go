@@ -296,6 +296,7 @@ func getOrCreateRoomNode(ctx context.Context, client *mautrix.Client, roomID str
     // Create a new room node
     roomNode := &TreeNode{
         Name:     formattedName, // Use the formatted name for the room
+        Avatar:   FetchAvatarURL(ctx, client, id.RoomID(roomID), ""), // Fetch and set the room avatar
         Status:   "ok",          // Default room status
         Children: []*TreeNode{},
     }

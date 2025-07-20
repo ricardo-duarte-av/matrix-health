@@ -35,6 +35,7 @@
     </style>
 </head>
 <body>
+    <img id="room-avatar" src="" alt="Room Avatar" style="display:block;margin:20px auto;max-width:96px;max-height:96px;border-radius:12px;box-shadow:0 2px 8px #888;" />
     <svg id="viz"></svg>
 
     <script>
@@ -68,6 +69,14 @@
         async function renderVisualization() {
             const data = await fetchTreeData();
 
+            // Set the room avatar image to the first room's avatar (if available)
+            const rooms = data.children || [];
+            if (rooms.length > 0 && rooms[0].avatar) {
+                document.getElementById('room-avatar').src = rooms[0].avatar;
+            } else {
+                document.getElementById('room-avatar').src = '';
+            }
+
             // Draw the origin node
             nodesGroup.append("circle")
                 .attr("cx", center.x)
@@ -82,7 +91,6 @@
                 .style("font-weight", "bold");
 
             // Compute room positions around the origin
-            const rooms = data.children || [];
             const roomRadius = 2000 // Math.min(window.innerWidth, window.innerHeight) / 1; // Increased distance for rooms (Level 2)
             const angleStep = (2 * Math.PI) / rooms.length;
 
