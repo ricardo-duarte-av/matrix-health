@@ -115,15 +115,16 @@
                     .attr("y2", roomY)
                     .attr("class", "line");
 
-                // Draw the room node (circle)
+                // Draw the room node (circle) with lower opacity for debugging
                 nodesGroup.append("circle")
                     .attr("cx", roomX)
                     .attr("cy", roomY)
                     .attr("r", 20)
-                    .attr("class", "room-node");
+                    .attr("class", "room-node")
+                    .attr("fill-opacity", 0.3);
 
-                // Draw the room avatar image (if available), with debug border and opacity
-                let avatarUrl = room.avatar || "https://dummyimage.com/32x32/cccccc/ffffff.png&text=?";
+                // Use a public dummy image for all avatars for debugging
+                let avatarUrl = "https://dummyimage.com/32x32/0074D9/fff.png&text=R";
                 console.log("Drawing avatar for room:", room.name, "at", roomX, roomY, "URL:", avatarUrl);
                 const img = nodesGroup.append("image")
                     .attr("x", roomX - 16)
@@ -131,9 +132,7 @@
                     .attr("width", 32)
                     .attr("height", 32)
                     .attr("href", avatarUrl)
-                    .attr("clip-path", "url(#roomAvatarClip)")
                     .attr("style", "opacity:0.85;stroke:#00f;stroke-width:2px;pointer-events:none;");
-                // If image fails to load, show a red border
                 img.node().addEventListener('error', function() {
                     img.attr("style", "opacity:0.85;stroke:#f00;stroke-width:2px;pointer-events:none;");
                 });
