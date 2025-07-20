@@ -22,6 +22,7 @@ type TreeNode struct {
     Name     string      `json:"name"`
     Avatar   string      `json:"avatar,omitempty"`
     Status   string      `json:"status,omitempty"` // Add Status field for server status
+    UserCount int        `json:"user_count,omitempty"` // Number of users from this server in this room
     Children []*TreeNode `json:"children,omitempty"`
 }
 

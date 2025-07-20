@@ -147,14 +147,22 @@
 
                 // Compute server positions around each room
                 const servers = room.children || [];
-                const serverRadius = 1000; // Distance from room to servers
-                const labelRadius = serverRadius + 30; // Distance for labels (closer to server circles)
+                // Find min and max user_count for scaling
+                const minUsers = d3.min(servers, s => s.user_count || 1) || 1;
+                const maxUsers = d3.max(servers, s => s.user_count || 1) || 1;
+                const minRadius = 6, maxRadius = 24;
+                const minDistance = 400, maxDistance = 1400;
+                const labelOffset = 30;
                 const serverAngleStep = (2 * Math.PI) / servers.length;
 
                 servers.forEach((server, j) => {
+                    const userCount = server.user_count || 1;
+                    // Scale radius and distance
+                    const radius = minRadius + (maxRadius - minRadius) * ((userCount - minUsers) / (maxUsers - minUsers || 1));
+                    const distance = minDistance + (maxDistance - minDistance) * ((userCount - minUsers) / (maxUsers - minUsers || 1));
                     const serverAngle = j * serverAngleStep;
-                    const serverX = roomX + serverRadius * Math.cos(serverAngle);
-                    const serverY = roomY + serverRadius * Math.sin(serverAngle);
+                    const serverX = roomX + distance * Math.cos(serverAngle);
+                    const serverY = roomY + distance * Math.sin(serverAngle);
 
                     // Draw the line connecting the room to the server
                     linesGroup.append("line")
@@ -168,16 +176,16 @@
                     nodesGroup.append("circle")
                         .attr("cx", serverX)
                         .attr("cy", serverY)
-                        .attr("r", 10) // Slightly larger server node for visibility
+                        .attr("r", radius)
                         .attr("class", "server-node")
-                        .attr("fill", server.status.toLowerCase() === "ok" ? "#2ECC40" : "#FF4136");
+                        .attr("fill", server.status && server.status.toLowerCase() === "ok" ? "#2ECC40" : "#FF4136");
 
                     // Calculate angle between room and server
                     const angle = (Math.atan2(serverY - roomY, serverX - roomX) * 180) / Math.PI;
 
                     // Calculate text position further out on the same angle
-                    const textX = roomX + labelRadius * Math.cos(serverAngle);
-                    const textY = roomY + labelRadius * Math.sin(serverAngle);
+                    const textX = roomX + (distance + labelOffset) * Math.cos(serverAngle);
+                    const textY = roomY + (distance + labelOffset) * Math.sin(serverAngle);
 
                     // Adjust text-anchor and rotation based on hemisphere
                     const isLeftHemisphere = serverAngle > Math.PI / 2 && serverAngle < (3 * Math.PI) / 2;
@@ -188,9 +196,9 @@
                     nodesGroup.append("text")
                         .attr("x", textX)
                         .attr("y", textY)
-                        .attr("text-anchor", textAnchor) // Align text properly
-                        .attr("transform", `rotate(${adjustedAngle}, ${textX}, ${textY})`) // Rotate text appropriately
-                        .text(server.name);
+                        .attr("text-anchor", textAnchor)
+                        .attr("transform", `rotate(${adjustedAngle}, ${textX}, ${textY})`)
+                        .text(server.name + (server.user_count ? ` (${server.user_count})` : ""));
                 });
             });
         }

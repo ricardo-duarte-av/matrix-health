@@ -222,20 +222,21 @@ func runServerCheckLoop(ctx context.Context, client *mautrix.Client) {
                                         return
                                 }
 
-                                // Deduplicate servers for this room
-                                uniqueServers := make(map[string]struct{})
+                                // Count users per server for this room
+                                serverUserCounts := make(map[string]int)
                                 for userID := range resp.Joined {
-                                        server := extractDomain(string(userID)) // Extract the domain of the user ID
-                                        uniqueServers[server] = struct{}{}     // Add the server to the map
+                                        server := extractDomain(string(userID))
+                                        serverUserCounts[server]++
                                 }
 
                                 // Create a WaitGroup for server-level parallelism
                                 var serverWg sync.WaitGroup
 
                                 // Check each unique server in parallel
-                                for server := range uniqueServers {
+                                for server, userCount := range serverUserCounts {
                                         // Fetch or create a server node in the room
                                         serverNode := getOrCreateServerNode(roomNode, server)
+                                        serverNode.UserCount = userCount // Set the user count for this server in this room
 
                                         serverWg.Add(1) // Increment the counter for server-level WaitGroup
 
