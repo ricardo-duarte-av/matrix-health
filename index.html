@@ -37,6 +37,7 @@
 <body>
     <img id="room-avatar" src="" alt="Room Avatar" style="display:block;margin:20px auto;max-width:96px;max-height:96px;border-radius:12px;box-shadow:0 2px 8px #888;" />
     <svg id="viz"></svg>
+    <div id="room-imgs" style="position:absolute;top:0;left:0;pointer-events:none;width:100vw;height:100vh;"></div>
 
     <script>
         // Set up SVG dimensions
@@ -85,6 +86,9 @@
                 document.getElementById('room-avatar').src = '';
             }
 
+            // Clear previous HTML images
+            document.getElementById('room-imgs').innerHTML = '';
+
             // Draw the origin node
             nodesGroup.append("circle")
                 .attr("cx", center.x)
@@ -123,19 +127,22 @@
                     .attr("class", "room-node")
                     .attr("fill-opacity", 0.3);
 
-                // Use a public dummy image for all avatars for debugging
-                let avatarUrl = "https://dummyimage.com/32x32/0074D9/fff.png&text=R";
-                console.log("Drawing avatar for room:", room.name, "at", roomX, roomY, "URL:", avatarUrl);
-                const img = nodesGroup.append("image")
-                    .attr("x", roomX - 16)
-                    .attr("y", roomY - 16)
-                    .attr("width", 32)
-                    .attr("height", 32)
-                    .attr("href", avatarUrl)
-                    .attr("style", "opacity:0.85;stroke:#00f;stroke-width:2px;pointer-events:none;");
-                img.node().addEventListener('error', function() {
-                    img.attr("style", "opacity:0.85;stroke:#f00;stroke-width:2px;pointer-events:none;");
-                });
+                // Draw the room avatar as an HTML <img> absolutely positioned
+                if (room.avatar) {
+                    const img = document.createElement('img');
+                    img.src = room.avatar;
+                    img.alt = room.name;
+                    img.style.position = 'absolute';
+                    img.style.left = (roomX - 16) + 'px';
+                    img.style.top = (roomY - 16) + 'px';
+                    img.style.width = '32px';
+                    img.style.height = '32px';
+                    img.style.borderRadius = '50%';
+                    img.style.boxShadow = '0 2px 8px #888';
+                    img.style.pointerEvents = 'none';
+                    img.style.zIndex = 10;
+                    document.getElementById('room-imgs').appendChild(img);
+                }
 
                 // Draw the room name
                 nodesGroup.append("text")
